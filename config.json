@@ -1,0 +1,13 @@
+{
+    "username": "fireball-alfred",
+    "password": "2ca41a01dd1c596a7ede9ef0cddc2cfa57a6e2dc",
+    "repos": [
+        {
+            "user": "fireball-x",
+            "name": "developer-accounts",
+            "labels": "deploy",
+            "command": "gulp",
+            "confirm": null
+        }
+    ]
+}
