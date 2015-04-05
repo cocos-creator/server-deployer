@@ -130,7 +130,7 @@ gulp.task('check', function(cb) {
 gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'clean', 'copy', 'run', 'check'));
 
 gulp.task('start-deployer', function(cb) {
-    var child = exec('pm2 start node_modules/deploy-robot/build/robot.js -- -c config.json --name deployer', {
+    var child = exec('pm2 start node_modules/deploy-robot/build/robot.js  --name deployer -- -c config.json', {
         cwd: __dirname
     }, function(error, stdout, stderr) {
         console.log('stdout: ' + stdout);
