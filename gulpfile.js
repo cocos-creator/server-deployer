@@ -84,7 +84,7 @@ gulp.task('check', function(cb) {
         process.kill();
       }
     });
-  }, 2000);
+  }, 8000);
 });
 
 gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'clean', 'copy', 'run', 'check'));
