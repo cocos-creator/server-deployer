@@ -1,5 +1,6 @@
 var gulp = require('gulp');
 var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 var gulpSequence = require('gulp-sequence');
 var path = require('path');
 var del = require('del');
@@ -87,3 +88,20 @@ gulp.task('check', function(cb) {
 });
 
 gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'clean', 'copy', 'run', 'check'));
+
+gulp.task('start-deployer', function(cb) {
+    var child = exec('pm2 start node_modules/deploy-robot/build/robot.js -- -c config.json --name deployer', {
+        cwd: __dirname
+    }, function(error, stdout, stderr) {
+        console.log('stdout: ' + stdout);
+        console.log('stderr: ' + stderr);
+        if (error !== null) {
+          console.log('exec error: ' + error);
+        }
+        return cb();
+    });
+    // child.stdout.on('data', function(data) {
+    //     console.log(data.toString());
+    // });
+    // return child;
+})
