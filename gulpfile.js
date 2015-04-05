@@ -69,6 +69,8 @@ var checkIfServerRunning = function(cb) {
             var result = false;
             for (var i = 0; i < process_list.length; ++i) {
                 var proc = process_list[i];
+                console.log(proc.pm2_env.name);
+                console.log(proc.pm2_env.status);
                 if (proc.pm2_env.name === 'account-server' && proc.pm2_env.status === 'online') {
                     result = true;
                     break;
@@ -91,6 +93,7 @@ gulp.task("test",function(cb) {
 
 gulp.task('run', function(cb) {
     checkIfServerRunning(function(result) {
+        console.log("Server running: " + result);
         if (result) {
             console.log("skipping start process.");
             return cb();
@@ -133,8 +136,8 @@ gulp.task('start-deployer', function(cb) {
     var child = exec('pm2 start node_modules/deploy-robot/build/robot.js  --name deployer -- -c config.json', {
         cwd: __dirname
     }, function(error, stdout, stderr) {
-        console.log('stdout: ' + stdout);
-        console.log('stderr: ' + stderr);
+        console.log(stdout);
+        console.log(stderr);
         if (error !== null) {
           console.log('exec error: ' + error);
         }
