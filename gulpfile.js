@@ -58,7 +58,7 @@ gulp.task('copy', function() {
 
 
 gulp.task('run', function() {
-    var child = spawn('pm2', ['start', 'server/server.js'], {
+    var child = spawn('pm2', ['start', 'server/server.js', '--watch', '--name', 'account-server'], {
         cwd: destPath
     });
 
