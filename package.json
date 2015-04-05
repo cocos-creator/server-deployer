@@ -12,6 +12,7 @@
     "del": "^1.1.1",
     "deploy-robot": "^1.0.0",
     "gulp": "3.8.11",
-    "gulp-sequence": "0.3.2"
+    "gulp-sequence": "0.3.2",
+    "pm2": "^0.12.9"
   }
 }

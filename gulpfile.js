@@ -2,6 +2,7 @@ var gulp = require('gulp');
 var spawn = require('child_process').spawn;
 var exec = require('child_process').exec;
 var gulpSequence = require('gulp-sequence');
+var pm2 = require('pm2');
 var path = require('path');
 var del = require('del');
 var os = require('os');
@@ -56,14 +57,53 @@ gulp.task('copy', function() {
                 .pipe(gulp.dest(destPath));
 });
 
-
-
-gulp.task('run', function() {
-    var child = spawn('pm2', ['start', 'server/server.js', '--watch', '--name', 'account-server'], {
-        cwd: destPath
+var checkIfServerRunning = function(cb) {
+    pm2.connect(function(err) {
+        // Start a script on the current folder
+        //pm2.start('test.js', { name: 'test' }, function(err, proc) {
+        if (err) throw new Error('err');
+        // Get all processes running
+        pm2.list(function(err, process_list) {
+            if (err) throw err;
+            //console.log(process_list);
+            var result = false;
+            for (var i = 0; i < process_list.length; ++i) {
+                var proc = process_list[i];
+                if (proc.pm2_env.name === 'account-server' && proc.pm2_env.status === 'online') {
+                    result = true;
+                    break;
+                }
+            }
+            // Disconnect to PM2
+            pm2.disconnect(function() {
+                return cb(result);
+            });
+        });
     });
+};
 
-    return child;
+gulp.task("test",function(cb) {
+   checkIfServerRunning(function(result) {
+       console.log('Server running: ' + result);
+       cb();
+   });
+});
+
+gulp.task('run', function(cb) {
+    checkIfServerRunning(function(result) {
+        if (result) {
+            console.log("skipping start process.");
+            return cb();
+        } else {
+            var child = spawn('pm2', ['start', 'server/server.js', '--watch', '--name', 'account-server'], {
+                cwd: destPath
+            });
+            child.on('exit', function() {
+                console.log("start process...");
+                return cb();
+            });
+        }
+    });
 });
 
 gulp.task('check', function(cb) {
@@ -84,7 +124,7 @@ gulp.task('check', function(cb) {
         process.kill();
       }
     });
-  }, 8000);
+  }, 10000);
 });
 
 gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'clean', 'copy', 'run', 'check'));
