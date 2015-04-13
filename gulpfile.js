@@ -91,22 +91,22 @@ gulp.task("test",function(cb) {
    });
 });
 
+gulp.task('stop', function() {
+  var child = spawn('pm2', ['stop', 'account-server']);
+  child.on('data', function(data) {
+    console.log(data.toString());
+  })
+  return child;
+});
+
 gulp.task('run', function(cb) {
-    checkIfServerRunning(function(result) {
-        console.log("Server running: " + result);
-        if (result) {
-            console.log("skipping start process.");
-            return cb();
-        } else {
-            var child = spawn('pm2', ['start', 'server/server.js', '--watch', '--name', 'account-server'], {
-                cwd: destPath
-            });
-            child.on('exit', function() {
-                console.log("start process...");
-                return cb();
-            });
-        }
-    });
+  var child = spawn('pm2', ['start', 'server/server.js', '--name', 'account-server', '--max-memory-restart', '80M'], {
+    cwd: destPath
+  });
+  child.on('exit', function() {
+    console.log("start process...");
+    return cb();
+  });
 });
 
 gulp.task('check', function(cb) {
@@ -130,10 +130,10 @@ gulp.task('check', function(cb) {
   }, 10000);
 });
 
-gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'clean', 'copy', 'run', 'check'));
+gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'stop', 'clean', 'copy', 'run', 'check'));
 
 gulp.task('start-deployer', function(cb) {
-    var child = exec('pm2 start node_modules/deploy-robot/build/robot.js  --name deployer -- -c config.json', {
+    var child = exec('pm2 start node_modules/deploy-robot/build/robot.js  --name deployer --max-memory-restart 40M -- -c config.json', {
         cwd: __dirname
     }, function(error, stdout, stderr) {
         console.log(stdout);
@@ -147,4 +147,4 @@ gulp.task('start-deployer', function(cb) {
     //     console.log(data.toString());
     // });
     // return child;
-})
+});
