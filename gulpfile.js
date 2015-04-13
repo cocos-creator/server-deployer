@@ -100,7 +100,7 @@ gulp.task('stop', function() {
 });
 
 gulp.task('run', function(cb) {
-  var child = spawn('pm2', ['start', 'server/server.js', '--name', 'account-server', '--max-memory-restart', '150M'], {
+  var child = spawn('pm2', ['start', 'server/server.js', '--name', 'account-server', '--node-args="--max-old-space-size=200"'], {
     cwd: destPath
   });
   child.on('exit', function() {
