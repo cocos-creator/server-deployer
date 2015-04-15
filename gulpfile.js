@@ -23,7 +23,7 @@ gulp.task('get-repo', function(cb) {
 });
 
 gulp.task('checkout', function(cb) {
-    var child = spawn('git', ['checkout', 'develop'], {
+    var child = spawn('git', ['checkout', 'master'], {
         cwd: tmpPath
     });
     child.stdout.on('data', function(data) {
@@ -95,7 +95,7 @@ gulp.task('stop', function() {
   var child = spawn('pm2', ['stop', 'account-server']);
   child.on('data', function(data) {
     console.log(data.toString());
-  })
+  });
   return child;
 });
 
