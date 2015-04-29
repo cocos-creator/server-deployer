@@ -22,6 +22,18 @@ gulp.task('get-repo', function(cb) {
     });
 });
 
+gulp.task('update-repo', function(cb) {
+      var child = spawn('git', ['pull', 'origin'], {
+        cwd: tmpPath
+      });
+      child.stdout.on('data', function(data) {
+          console.log(data.toString());
+      });
+      child.on('exit', function () {
+          return cb();
+      });
+});
+
 gulp.task('checkout', function(cb) {
     var child = spawn('git', ['checkout', 'master'], {
         cwd: tmpPath
@@ -131,6 +143,8 @@ gulp.task('check', function(cb) {
 });
 
 gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'stop', 'clean', 'copy', 'run', 'check'));
+
+gulp.task('update', gulpSequence('update-repo', 'stop', 'clean', 'copy', 'run'));
 
 gulp.task('start-deployer', function(cb) {
     var child = exec('pm2 start node_modules/deploy-robot/build/robot.js  --name deployer --max-memory-restart 40M -- -c config.json', {
