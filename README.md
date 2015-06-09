@@ -17,28 +17,40 @@ cd server-deployer
 npm install
 ```
 
+## Setup
+
+You need to have a `settings.json` file created in deployer folder to specify which github repo to deploy and it's name and branch.
+
+You can use [settings-template.json](settings-template.json) as a template to create your `settings.json` file.
+
 ## Usage
 
-First start [deploy-robot](https://github.com/SegmentFault/deploy-robot) with pm2.
-
-```bash
-gulp start-deployer
-```
-It will create a process named `deployer` and watch for target repo newly created issue labeled with `deploy`. Check above link for deploy-robot usage example.
-
-Then start application server:
+To deploy your app and start it via PM2:
 
 ```bash
 gulp
 ```
 
-It will clone from target repo and start the application with pm2. Each time you trigger a deploy with new issue, the above script will run, getting updates from target repo and restart server process.
+It will clone from target repo and start the application with pm2. Each time you updated your app's github repo, you can run this command again to re-deploy.
 
-Once the two processes are running correctly, save the jobs so that they can get auto-started on server reboot:
+Use following PM2 commands to check the app's status:
+
+```bash
+pm2 list
+pm2 logs
+```
+
+Once the app processes are running correctly, save the jobs so that they can get auto-started on server reboot:
 
 ```bash
 pm2 save
 ```
+
+Then you can run
+```bash
+pm2 startup
+```
+to make pm2 launch automatically when server reboot.
 
 ## Managing Process
 
