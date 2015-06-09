@@ -6,9 +6,19 @@ var pm2 = require('pm2');
 var path = require('path');
 var del = require('del');
 var os = require('os');
-var repoUrl = 'git@github.com:fireball-x/developer-accounts.git';
-var tmpPath = path.join(os.tmpdir(), 'account-server');
-var destPath = path.join(process.env.HOME,'account-server');
+var fs = require('fs');
+var settings = JSON.parse(fs.readFileSync('settings.json'));
+/* settings template
+*{
+*  "repoUrl": "git@github.com:fireball-x/packages.git",
+*  "pathName": "packages",
+*  "branch": "master"
+*}
+*/
+var repoUrl = settings.repoUrl;
+var pathName = settings.pathName;
+var tmpPath = path.join(os.tmpdir(), pathName);
+var destPath = path.join(process.env.HOME, pathName);
 
 gulp.task('get-repo', function(cb) {
     del(tmpPath, {force: true}, function() {
@@ -35,7 +45,7 @@ gulp.task('update-repo', function(cb) {
 });
 
 gulp.task('checkout', function(cb) {
-    var child = spawn('git', ['checkout', 'master'], {
+    var child = spawn('git', ['checkout', settings.branch], {
         cwd: tmpPath
     });
     child.stdout.on('data', function(data) {
@@ -83,7 +93,7 @@ var checkIfServerRunning = function(cb) {
                 var proc = process_list[i];
                 console.log(proc.pm2_env.name);
                 console.log(proc.pm2_env.status);
-                if (proc.pm2_env.name === 'account-server' && proc.pm2_env.status === 'online') {
+                if (proc.pm2_env.name === pathName && proc.pm2_env.status === 'online') {
                     result = true;
                     break;
                 }
@@ -96,15 +106,15 @@ var checkIfServerRunning = function(cb) {
     });
 };
 
-gulp.task("test",function(cb) {
-   checkIfServerRunning(function(result) {
-       console.log('Server running: ' + result);
-       cb();
-   });
-});
+// gulp.task("test",function(cb) {
+//    checkIfServerRunning(function(result) {
+//        console.log('Server running: ' + result);
+//        cb();
+//    });
+// });
 
 gulp.task('stop', function() {
-  var child = spawn('pm2', ['stop', 'account-server']);
+  var child = spawn('pm2', ['stop', pathName]);
   child.on('data', function(data) {
     console.log(data.toString());
   });
@@ -112,7 +122,8 @@ gulp.task('stop', function() {
 });
 
 gulp.task('run', function(cb) {
-  var child = spawn('pm2', ['start', 'server/server.js', '--name', 'account-server', '--node-args="--max-old-space-size=200"'], {
+  var entry = JSON.parse(fs.readFileSync(path.join(destPath, 'package.json'))).main;
+  var child = spawn('pm2', ['start', entry, '--name', pathName, '--node-args="--max-old-space-size=200"'], {
     cwd: destPath
   });
   child.on('exit', function() {
@@ -120,45 +131,45 @@ gulp.task('run', function(cb) {
     return cb();
   });
 });
+//
+// gulp.task('check', function(cb) {
+//   setTimeout(function() {
+//     var child = spawn('curl', ['http://localhost:3000']);
+//     child.stdout.on('data', function(data) {
+//       console.log(data.toString());
+//       var status = JSON.parse(data.toString());
+//       if (status.uptime && status.started) {
+//         console.log("server is running.");
+//         return cb();
+//       }
+//     });
+//     child.stderr.on('data', function(data) {
+//       console.log(data.toString());
+//       if (data.toString().indexOf('Failed') !== -1) {
+//         console.log("server started failed");
+//         process.kill();
+//       }
+//     });
+//   }, 10000);
+// });
 
-gulp.task('check', function(cb) {
-  setTimeout(function() {
-    var child = spawn('curl', ['http://localhost:3000']);
-    child.stdout.on('data', function(data) {
-      console.log(data.toString());
-      var status = JSON.parse(data.toString());
-      if (status.uptime && status.started) {
-        console.log("server is running.");
-        return cb();
-      }
-    });
-    child.stderr.on('data', function(data) {
-      console.log(data.toString());
-      if (data.toString().indexOf('Failed') !== -1) {
-        console.log("server started failed");
-        process.kill();
-      }
-    });
-  }, 10000);
-});
-
-gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'stop', 'clean', 'copy', 'run', 'check'));
+gulp.task('default', gulpSequence('get-repo', 'checkout', 'install', 'stop', 'clean', 'copy', 'run'));
 
 gulp.task('update', gulpSequence('update-repo', 'stop', 'clean', 'copy', 'run'));
 
-gulp.task('start-deployer', function(cb) {
-    var child = exec('pm2 start node_modules/deploy-robot/build/robot.js  --name deployer --max-memory-restart 40M -- -c config.json', {
-        cwd: __dirname
-    }, function(error, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
-        if (error !== null) {
-          console.log('exec error: ' + error);
-        }
-        return cb();
-    });
-    // child.stdout.on('data', function(data) {
-    //     console.log(data.toString());
-    // });
-    // return child;
-});
+// gulp.task('start-deployer', function(cb) {
+//     var child = exec('pm2 start node_modules/deploy-robot/build/robot.js  --name deployer --max-memory-restart 40M -- -c config.json', {
+//         cwd: __dirname
+//     }, function(error, stdout, stderr) {
+//         console.log(stdout);
+//         console.log(stderr);
+//         if (error !== null) {
+//           console.log('exec error: ' + error);
+//         }
+//         return cb();
+//     });
+//     // child.stdout.on('data', function(data) {
+//     //     console.log(data.toString());
+//     // });
+//     // return child;
+// });
